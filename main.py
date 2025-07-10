@@ -15,6 +15,7 @@ from langchain.schema import Document
 # Load API key
 load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
+scraper_api = os.getenv("SCRAPER_API")
 
 app = FastAPI()
 
@@ -32,9 +33,11 @@ def get_youtube_transcript_as_doc(video_url: str) -> list[Document]:
     video_id = extract_video_id(video_url)
     if not video_id:
         raise ValueError("Invalid YouTube video URL")
-
+    proxy = {
+        "https": f"http://scraperapi:{scraper_api}@proxy-server.scraperapi.com:8001"
+    }
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
+        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'],proxies=proxy)
     except NoTranscriptFound:
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         try:
